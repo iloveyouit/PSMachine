@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: psmachine-db
+    environment:
+      POSTGRES_USER: psmachine
+      POSTGRES_PASSWORD: psmachine
+      POSTGRES_DB: psmachine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - psmachine-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U psmachine"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flask Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: psmachine-backend
+    environment:
+      FLASK_ENV: production
+      FLASK_HOST: 0.0.0.0
+      FLASK_PORT: 5001
+      SECRET_KEY: ${SECRET_KEY:-change-this-secret-key-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-this-jwt-secret-key-in-production}
+      DATABASE_URL: postgresql://psmachine:psmachine@db:5432/psmachine
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+    ports:
+      - "5001:5001"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - script_executions:/app/executions
+    networks:
+      - psmachine-network
+    restart: unless-stopped
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: psmachine-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - psmachine-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  script_executions:
+    driver: local
+
+networks:
+  psmachine-network:
+    driver: bridge
