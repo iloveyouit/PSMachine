@@ -13,7 +13,7 @@ scripts_bp = Blueprint('scripts', __name__)
 @jwt_required()
 def list_scripts():
     """List all scripts accessible to user."""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.query.get(user_id)
 
     # Get filter parameters
@@ -58,7 +58,7 @@ def list_scripts():
 @jwt_required()
 def get_script(script_id):
     """Get a specific script by ID."""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.query.get(user_id)
 
     script = Script.query.get(script_id)
@@ -77,7 +77,7 @@ def get_script(script_id):
 @jwt_required()
 def create_script():
     """Create a new script."""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     data = request.get_json()
 
     if not data:
@@ -125,7 +125,7 @@ def create_script():
 @jwt_required()
 def update_script(script_id):
     """Update an existing script."""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.query.get(user_id)
 
     script = Script.query.get(script_id)
@@ -194,7 +194,7 @@ def update_script(script_id):
 @jwt_required()
 def delete_script(script_id):
     """Delete a script."""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.query.get(user_id)
 
     script = Script.query.get(script_id)
@@ -216,7 +216,7 @@ def delete_script(script_id):
 @jwt_required()
 def get_script_versions(script_id):
     """Get version history for a script."""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.query.get(user_id)
 
     script = Script.query.get(script_id)

@@ -71,9 +71,9 @@ def login():
     if not user.is_active:
         return jsonify({'error': 'Account is disabled'}), 403
 
-    # Create access token
+    # Create access token (subject must be a string per RFC7519 / PyJWT)
     access_token = create_access_token(
-        identity=user.id,
+        identity=str(user.id),
         additional_claims={'role': user.role},
         expires_delta=timedelta(hours=24)
     )
@@ -88,7 +88,7 @@ def login():
 @jwt_required()
 def get_current_user():
     """Get current user information."""
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())
     user = User.query.get(user_id)
 
     if not user:
