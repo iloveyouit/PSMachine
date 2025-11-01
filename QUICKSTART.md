@@ -4,7 +4,7 @@ Get PSMachine running in under 5 minutes!
 
 ## Prerequisites
 
-- Docker Desktop installed and running
+- Docker Desktop installed and running (Compose V2 enabled)
 - Python 3.11+ (for generating secure keys)
 
 ## Installation
@@ -22,6 +22,10 @@ This script will:
 - Build Docker images
 - Start all containers
 - Initialize the database
+
+Notes:
+- Works with Docker Compose V2 (`docker compose`). If V1 (`docker-compose`) is present, it's used automatically.
+- If `cryptography` isn't available system-wide, the script temporarily creates a virtual environment to generate `ENCRYPTION_KEY`.
 
 ### Option 2: Local Development Setup
 
@@ -57,12 +61,12 @@ This script will:
 
 2. **Start Docker containers**
    ```bash
-   docker-compose up -d
+   docker compose up -d
    ```
 
 3. **Wait for services to start**
    ```bash
-   docker-compose ps
+   docker compose ps
    # All services should show "Up" status
    ```
 
@@ -144,22 +148,22 @@ If you have existing PowerShell scripts:
 
 ```bash
 # View logs
-docker-compose logs -f
+docker compose logs -f
 
 # View backend logs only
-docker-compose logs -f backend
+docker compose logs -f backend
 
 # Restart all services
-docker-compose restart
+docker compose restart
 
 # Stop all services
-docker-compose down
+docker compose down
 
 # Stop and remove volumes (full reset)
-docker-compose down -v
+docker compose down -v
 
 # Rebuild after code changes
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ## Troubleshooting
@@ -167,28 +171,28 @@ docker-compose up -d --build
 ### Can't access http://localhost:3000
 ```bash
 # Check if containers are running
-docker-compose ps
+docker compose ps
 
 # Check frontend logs
-docker-compose logs frontend
+docker compose logs frontend
 ```
 
 ### Scripts won't execute
 ```bash
 # Check backend logs for errors
-docker-compose logs backend
+docker compose logs backend
 
 # Verify PowerShell is installed in container
-docker-compose exec backend pwsh -Version
+docker compose exec backend pwsh -Version
 ```
 
 ### Database errors
 ```bash
 # Restart database
-docker-compose restart db
+docker compose restart db
 
 # Check database logs
-docker-compose logs db
+docker compose logs db
 ```
 
 ## Next Steps

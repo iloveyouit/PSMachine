@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import ScriptList from './ScriptList';
 import ScriptEditor from './ScriptEditor';
@@ -6,12 +6,9 @@ import ExecutionHistory from './ExecutionHistory';
 import ExecutionConsole from './ExecutionConsole';
 import {
   FileCode,
-  Play,
   LogOut,
   Plus,
   History,
-  Settings,
-  BarChart,
 } from 'lucide-react';
 import type { Script, Execution } from '../types';
 
@@ -38,10 +35,7 @@ const Dashboard: React.FC = () => {
     setView('execution');
   };
 
-  const handleViewExecution = (execution: Execution) => {
-    setSelectedExecution(execution);
-    setView('history');
-  };
+  // View execution handler can be added when linking from history list
 
   const handleScriptSaved = () => {
     setView('scripts');

@@ -12,7 +12,7 @@ const ExecutionConsole: React.FC<ExecutionConsoleProps> = ({ script, onClose }) 
   const [parameters, setParameters] = useState<Record<string, any>>({});
   const [execution, setExecution] = useState<Execution | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
-  const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
+  const [pollInterval, setPollInterval] = useState<number | null>(null);
   const outputRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,14 +42,14 @@ const ExecutionConsole: React.FC<ExecutionConsoleProps> = ({ script, onClose }) 
   useEffect(() => {
     // Cleanup poll interval on unmount
     return () => {
-      if (pollInterval) {
+      if (pollInterval !== null) {
         clearInterval(pollInterval);
       }
     };
   }, [pollInterval]);
 
   const pollExecution = (executionId: number) => {
-    const interval = setInterval(async () => {
+    const interval = window.setInterval(async () => {
       try {
         const data = await executionAPI.get(executionId);
         setExecution(data);

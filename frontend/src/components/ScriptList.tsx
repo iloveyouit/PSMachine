@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { scriptsAPI } from '../services/api';
-import { Search, Play, Edit, Trash2, Filter, RefreshCw } from 'lucide-react';
+import { Search, Play, Edit, Trash2, RefreshCw } from 'lucide-react';
 import type { Script } from '../types';
 
 interface ScriptListProps {
