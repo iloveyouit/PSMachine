@@ -5,8 +5,10 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_socketio import SocketIO
+from flask_migrate import Migrate
 from dotenv import load_dotenv
 import os
+import sys
 
 # Load environment variables
 load_dotenv()
@@ -32,6 +34,7 @@ app.config['SQLALCHEMY_ECHO'] = os.getenv('FLASK_ENV') == 'development'
 
 # Initialize extensions
 db.init_app(app)
+migrate = Migrate(app, db)
 jwt = JWTManager(app)
 socketio = SocketIO(app, cors_allowed_origins='*')
 
@@ -102,6 +105,72 @@ def missing_token_callback(error):
     return jsonify({'error': 'Authorization token is missing'}), 401
 
 
+# Configuration validation
+def validate_config():
+    """
+    Validate critical configuration on startup.
+    Fail fast if required configuration is missing or invalid.
+    """
+    errors = []
+    warnings = []
+    flask_env = os.getenv('FLASK_ENV', 'production')
+
+    # Check production secrets
+    if flask_env == 'production':
+        secret_key = app.config.get('SECRET_KEY', '')
+        jwt_secret = app.config.get('JWT_SECRET_KEY', '')
+
+        if secret_key.startswith('dev-') or secret_key == 'dev-secret-key-change-in-production':
+            errors.append("SECRET_KEY must be changed in production (currently using default value)")
+
+        if jwt_secret.startswith('jwt-secret') or jwt_secret == 'jwt-secret-key-change-in-production':
+            errors.append("JWT_SECRET_KEY must be changed in production (currently using default value)")
+
+        if not os.getenv('ENCRYPTION_KEY'):
+            errors.append("ENCRYPTION_KEY must be set in production")
+
+        # Warn about default database password
+        db_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+        if 'psmachine:psmachine@' in db_url:
+            warnings.append("Using default database password - change for production")
+
+    # Check encryption key format
+    encryption_key = os.getenv('ENCRYPTION_KEY')
+    if encryption_key:
+        try:
+            from services.security import CredentialEncryption
+            CredentialEncryption(encryption_key)
+        except Exception as e:
+            errors.append(f"Invalid ENCRYPTION_KEY format: {str(e)}")
+    elif flask_env == 'development':
+        warnings.append("ENCRYPTION_KEY not set - credential encryption will fail")
+
+    # Check database URL format
+    db_url = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+    if not db_url:
+        errors.append("DATABASE_URL not configured")
+    elif not (db_url.startswith('postgresql://') or db_url.startswith('sqlite://')):
+        errors.append(f"Invalid DATABASE_URL format: {db_url.split('://')[0] if '://' in db_url else 'unknown'}")
+
+    # Print warnings
+    if warnings:
+        print("\n⚠️  Configuration Warnings:")
+        for warning in warnings:
+            print(f"   - {warning}")
+
+    # Print errors and exit if any
+    if errors:
+        print("\n❌ Configuration Errors:")
+        for error in errors:
+            print(f"   - {error}")
+        print("\nApplication cannot start with invalid configuration.")
+        print("Please check your environment variables and try again.\n")
+        sys.exit(1)
+
+    if flask_env == 'production':
+        print("✅ Configuration validation passed")
+
+
 # Database initialization
 def init_db():
     """Initialize database and create tables."""
@@ -124,6 +193,9 @@ def init_db():
 
 
 if __name__ == '__main__':
+    # Validate configuration first
+    validate_config()
+
     # Initialize database
     init_db()
 
